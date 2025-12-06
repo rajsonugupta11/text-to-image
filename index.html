@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text-to-Image Generator</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Adding Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-magic"></i> Text-to-Image Generator</h1>
+        <form id="text-to-image-form">
+            <label for="prompt"><i class="fas fa-pencil-alt"></i> Enter a prompt:</label>
+            <input type="text" id="prompt" name="prompt" placeholder="Describe your image..." required>
+            <button type="submit"><i class="fas fa-wand-magic-sparkles"></i> Generate Image</button>
+        </form>
+        <div id="loading" style="display:none;"><i class="fas fa-spinner fa-spin"></i> Generating image...</div>
+        <div id="result">
+            <h2><i class="fas fa-image"></i> Generated Image:</h2>
+            <img id="generated-image" src="" alt="Generated Image" style="display:none;">
+            <div class="button-container">
+                <button id="download"><i class="fas fa-download"></i> Download</button>
+                <button id="regenerate"><i class="fas fa-redo"></i> Regenerate</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
