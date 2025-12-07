@@ -9,18 +9,21 @@ async function query(data, configIndex = 0) {
         const result = await response.json();
 
         if (result.error) {
-            alert("❌ Error: " + result.error + "\nDetails: " + (result.details || ""));
+            alert("❌ Error: " + result.error);
             return null;
         }
 
-        if (result.image) return result.image;
+        if (result.image) {
+            // ✓ This is what shows the image on screen
+            document.getElementById("resultImage").src = result.image;
+            return result.image;
+        }
 
-        alert("⚠ Unexpected API response");
+        alert("⚠ No image returned");
         return null;
 
     } catch (err) {
-        console.error("Frontend error:", err);
-        alert("❌ Frontend JS error: " + err.message);
+        alert("❌ Frontend error: " + err.message);
         return null;
     }
 }
