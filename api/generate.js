@@ -15,9 +15,7 @@ export default async function handler(req, res) {
           Authorization: `Bearer ${process.env.HF_API_TOKEN_1}`,
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          inputs: prompt
-        })
+        body: JSON.stringify({ inputs: prompt })
       }
     );
 
