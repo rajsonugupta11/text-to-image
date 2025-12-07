@@ -1,79 +1,41 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("text-to-image-form");
-    const promptInput = document.getElementById("prompt");
-    const loading = document.getElementById("loading");
-    const img = document.getElementById("generated-image");
-    const downloadBtn = document.getElementById("download");
-    const regenerateBtn = document.getElementById("regenerate");
+const form = document.getElementById("text-to-image-form");
+const promptInput = document.getElementById("prompt");
+const loading = document.getElementById("loading");
+const resultImage = document.getElementById("generated-image");
 
-    let lastPrompt = "";
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const prompt = promptInput.value.trim();
-        if (!prompt) return;
+    const prompt = promptInput.value.trim();
+    if (!prompt) return alert("Please enter a prompt!");
 
-        lastPrompt = prompt;
-        loading.style.display = "flex";
-        img.style.display = "none";
+    // Show loading
+    loading.style.display = "flex";
+    resultImage.style.display = "none";
 
-        const image = await query({ inputs: prompt });
-
-        loading.style.display = "none";
-
-        if (image) {
-            img.style.display = "block";
-        }
-    });
-
-    downloadBtn.addEventListener("click", () => {
-        if (!img.src) return alert("No image to download!");
-        const a = document.createElement("a");
-        a.href = img.src;
-        a.download = "generated_image.png";
-        a.click();
-    });
-
-    regenerateBtn.addEventListener("click", async () => {
-        if (!lastPrompt) return alert("No previous prompt!");
-        loading.style.display = "flex";
-        img.style.display = "none";
-
-        const image = await query({ inputs: lastPrompt });
-
-        loading.style.display = "none";
-
-        if (image) img.style.display = "block";
-    });
-});
-
-async function query(data, configIndex = 0) {
     try {
         const response = await fetch("/api/generate", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt: data.inputs, configIndex })
+            body: JSON.stringify({ prompt })
         });
 
-        const result = await response.json();
+        const data = await response.json();
+        loading.style.display = "none";
 
-        if (result.error) {
-            alert("❌ Error: " + result.error + "\n" + (result.details || ""));
-            return null;
+        if (data.error) {
+            return alert("❌ Error: " + data.error);
         }
 
-        if (result.image) {
-            const img = document.getElementById("generated-image");
-            img.src = result.image;
-            img.style.display = "block";  // show the image
-            return result.image;
+        if (data.image) {
+            resultImage.src = data.image;
+            resultImage.style.display = "block";
+        } else {
+            alert("⚠ No image returned");
         }
-
-        alert("⚠ No image returned");
-        return null;
 
     } catch (err) {
+        loading.style.display = "none";
         alert("❌ Frontend error: " + err.message);
-        return null;
     }
-}
+});
