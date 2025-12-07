@@ -1,3 +1,4 @@
+// pages/api/generate.js  (Next.js / Node.js style)
 export default async function handler(req, res) {
     if (req.method !== "POST") {
         return res.status(405).json({ error: "Only POST requests allowed" });
@@ -5,6 +6,11 @@ export default async function handler(req, res) {
 
     const { prompt, configIndex } = req.body;
 
+    if (!prompt) {
+        return res.status(400).json({ error: "Prompt is required" });
+    }
+
+    // Multiple configurations
     const configurations = [
         {
             token: process.env.HF_API_TOKEN_1,
@@ -16,7 +22,7 @@ export default async function handler(req, res) {
         }
     ];
 
-    const config = configurations[configIndex || 0];
+    const config = configurations[configIndex || 0]; // default first
 
     try {
         const response = await fetch(config.endpoint, {
@@ -38,12 +44,18 @@ export default async function handler(req, res) {
             });
         }
 
-        // Try JSON
+        // Try JSON response
         const json = await response.json();
 
-        if (json.generated_image) {
+        if (json[0]?.generated_image) {
             return res.status(200).json({
-                image: "data:image/png;base64," + json.generated_image
+                image: "data:image/png;base64," + json[0].generated_image
+            });
+        }
+
+        if (json[0]?.image_base64) {
+            return res.status(200).json({
+                image: "data:image/png;base64," + json[0].image_base64
             });
         }
 
