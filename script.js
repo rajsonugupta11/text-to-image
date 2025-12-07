@@ -14,8 +14,9 @@ async function query(data, configIndex = 0) {
         }
 
         if (result.image) {
-            // ✓ This is what shows the image on screen
-            document.getElementById("resultImage").src = result.image;
+            const img = document.getElementById("generated-image");
+            img.src = result.image;
+            img.style.display = "block";
             return result.image;
         }
 
