@@ -8,14 +8,16 @@ export default async function handler(req, res) {
 
   try {
     const response = await fetch(
-      "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5",
+      "https://router.huggingface.co/models/runwayml/stable-diffusion-v1-5",
       {
         method: "POST",
         headers: {
           Authorization: `Bearer ${process.env.HF_API_TOKEN_1}`,
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ inputs: prompt })
+        body: JSON.stringify({
+          inputs: prompt
+        })
       }
     );
 
@@ -30,7 +32,7 @@ export default async function handler(req, res) {
     const arrayBuffer = await response.arrayBuffer();
     const base64 = Buffer.from(arrayBuffer).toString("base64");
 
-    res.status(200).json({
+    return res.status(200).json({
       image: `data:image/png;base64,${base64}`
     });
 
