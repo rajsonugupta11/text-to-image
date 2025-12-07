@@ -5,10 +5,6 @@ export default async function handler(req, res) {
 
     const { prompt, configIndex } = req.body;
 
-    if (!prompt) {
-        return res.status(400).json({ error: "Prompt is required" });
-    }
-
     const configurations = [
         {
             token: process.env.HF_API_TOKEN_1,
@@ -32,30 +28,28 @@ export default async function handler(req, res) {
             body: JSON.stringify({ inputs: prompt })
         });
 
-        // Try reading as JSON
-        let result;
-        try {
-            result = await response.json();
-        } catch (e) {
-            // If not JSON, maybe binary image
-            const arrayBuffer = await response.arrayBuffer();
-            const base64 = Buffer.from(arrayBuffer).toString("base64");
+        const contentType = response.headers.get("content-type");
+
+        // If image (binary)
+        if (contentType && contentType.includes("image")) {
+            const buffer = Buffer.from(await response.arrayBuffer());
             return res.status(200).json({
-                image: "data:image/png;base64," + base64
+                image: "data:image/png;base64," + buffer.toString("base64")
             });
         }
 
-        // Model returning JSON with base64
-        if (result.generated_image) {
+        // Try JSON
+        const json = await response.json();
+
+        if (json.generated_image) {
             return res.status(200).json({
-                image: "data:image/png;base64," + result.generated_image
+                image: "data:image/png;base64," + json.generated_image
             });
         }
 
-        return res.status(500).json({ error: "No image returned", result });
+        return res.status(500).json({ error: "No image returned", response: json });
 
     } catch (err) {
-        console.error(err);
         return res.status(500).json({ error: "Server error", details: err.message });
     }
 }
