@@ -20,7 +20,7 @@ document.getElementById("text-to-image-form").addEventListener("submit", async (
     const data = await res.json();
 
     if (data.error) {
-      alert("❌ Error: " + data.details || data.error);
+      alert("❌ Error: " + (data.details || data.error));
     } else if (data.image) {
       img.src = data.image;
       img.style.display = "block";
@@ -35,7 +35,7 @@ document.getElementById("text-to-image-form").addEventListener("submit", async (
   }
 });
 
-// ✅ DOWNLOAD BUTTON
+// ✅ DOWNLOAD
 document.getElementById("download").addEventListener("click", () => {
   const img = document.getElementById("generated-image");
   if (!img.src) return alert("No image to download!");
@@ -46,7 +46,7 @@ document.getElementById("download").addEventListener("click", () => {
   a.click();
 });
 
-// ✅ REGENERATE BUTTON
+// ✅ REGENERATE
 document.getElementById("regenerate").addEventListener("click", () => {
   document.getElementById("text-to-image-form").dispatchEvent(new Event("submit"));
 });
