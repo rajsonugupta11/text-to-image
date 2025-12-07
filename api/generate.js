@@ -1,16 +1,14 @@
-// pages/api/generate.js  (Next.js / Node.js style)
+// Next.js API route
 export default async function handler(req, res) {
     if (req.method !== "POST") {
         return res.status(405).json({ error: "Only POST requests allowed" });
     }
 
     const { prompt, configIndex } = req.body;
-
     if (!prompt) {
         return res.status(400).json({ error: "Prompt is required" });
     }
 
-    // Multiple configurations
     const configurations = [
         {
             token: process.env.HF_API_TOKEN_1,
@@ -22,7 +20,7 @@ export default async function handler(req, res) {
         }
     ];
 
-    const config = configurations[configIndex || 0]; // default first
+    const config = configurations[configIndex || 0];
 
     try {
         const response = await fetch(config.endpoint, {
@@ -34,32 +32,17 @@ export default async function handler(req, res) {
             body: JSON.stringify({ inputs: prompt })
         });
 
-        const contentType = response.headers.get("content-type");
-
-        // If image (binary)
-        if (contentType && contentType.includes("image")) {
-            const buffer = Buffer.from(await response.arrayBuffer());
-            return res.status(200).json({
-                image: "data:image/png;base64," + buffer.toString("base64")
-            });
-        }
-
-        // Try JSON response
         const json = await response.json();
 
-        if (json[0]?.generated_image) {
-            return res.status(200).json({
-                image: "data:image/png;base64," + json[0].generated_image
-            });
+        if (!json[0]?.generated_image && !json[0]?.image_base64) {
+            return res.status(500).json({ error: "No image returned", response: json });
         }
 
-        if (json[0]?.image_base64) {
-            return res.status(200).json({
-                image: "data:image/png;base64," + json[0].image_base64
-            });
-        }
+        const base64Image = json[0].generated_image || json[0].image_base64;
 
-        return res.status(500).json({ error: "No image returned", response: json });
+        return res.status(200).json({
+            image: "data:image/png;base64," + base64Image
+        });
 
     } catch (err) {
         return res.status(500).json({ error: "Server error", details: err.message });
