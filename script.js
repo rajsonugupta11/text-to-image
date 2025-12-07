@@ -1,41 +1,52 @@
-const form = document.getElementById("text-to-image-form");
-const promptInput = document.getElementById("prompt");
-const loading = document.getElementById("loading");
-const resultImage = document.getElementById("generated-image");
-
-form.addEventListener("submit", async (e) => {
+// script.js
+document.getElementById("text-to-image-form").addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const prompt = promptInput.value.trim();
+    const prompt = document.getElementById("prompt").value.trim();
     if (!prompt) return alert("Please enter a prompt!");
 
-    // Show loading
+    const loading = document.getElementById("loading");
+    const img = document.getElementById("generated-image");
+
     loading.style.display = "flex";
-    resultImage.style.display = "none";
+    img.style.display = "none";
 
     try {
-        const response = await fetch("/api/generate", {
+        const res = await fetch("/api/generate", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ prompt })
         });
 
-        const data = await response.json();
-        loading.style.display = "none";
+        const data = await res.json();
 
         if (data.error) {
-            return alert("❌ Error: " + data.error);
-        }
-
-        if (data.image) {
-            resultImage.src = data.image;
-            resultImage.style.display = "block";
+            alert("❌ Error: " + data.error);
+        } else if (data.image) {
+            img.src = data.image;
+            img.style.display = "block";
         } else {
-            alert("⚠ No image returned");
+            alert("⚠ No image returned.");
         }
-
     } catch (err) {
-        loading.style.display = "none";
         alert("❌ Frontend error: " + err.message);
+    } finally {
+        loading.style.display = "none";
     }
+});
+
+// Download button
+document.getElementById("download").addEventListener("click", () => {
+    const img = document.getElementById("generated-image");
+    if (!img.src) return alert("No image to download!");
+
+    const a = document.createElement("a");
+    a.href = img.src;
+    a.download = "generated-image.png";
+    a.click();
+});
+
+// Regenerate button
+document.getElementById("regenerate").addEventListener("click", () => {
+    document.getElementById("text-to-image-form").dispatchEvent(new Event("submit"));
 });
