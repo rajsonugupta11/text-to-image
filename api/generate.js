@@ -9,7 +9,6 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Prompt is required" });
     }
 
-    // Multiple configurations
     const configurations = [
         {
             token: process.env.HF_API_TOKEN_1,
@@ -21,40 +20,39 @@ export default async function handler(req, res) {
         }
     ];
 
-    const config = configurations[configIndex || 0]; // default first
+    const config = configurations[configIndex || 0];
 
     try {
         const response = await fetch(config.endpoint, {
             method: "POST",
             headers: {
-                Authorization: config.token,
+                Authorization: `Bearer ${config.token}`,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({ inputs: prompt })
         });
 
-        const raw = await response.text();
+        // Try reading as JSON
         let result;
-        try { result = JSON.parse(raw); } catch { result = raw; }
-
-        if (response.status === 401 || response.status === 403) {
-            return res.status(401).json({ error: "Token expired or invalid", details: raw });
+        try {
+            result = await response.json();
+        } catch (e) {
+            // If not JSON, maybe binary image
+            const arrayBuffer = await response.arrayBuffer();
+            const base64 = Buffer.from(arrayBuffer).toString("base64");
+            return res.status(200).json({
+                image: "data:image/png;base64," + base64
+            });
         }
 
-        if (!response.ok) {
-            return res.status(response.status).json({ error: raw });
+        // Model returning JSON with base64
+        if (result.generated_image) {
+            return res.status(200).json({
+                image: "data:image/png;base64," + result.generated_image
+            });
         }
 
-        // HuggingFace base64 format
-        if (result[0]?.generated_image) {
-            return res.status(200).json({ image: "data:image/png;base64," + result[0].generated_image });
-        }
-
-        if (result[0]?.image_base64) {
-            return res.status(200).json({ image: "data:image/png;base64," + result[0].image_base64 });
-        }
-
-        return res.status(200).json({ image: null, raw });
+        return res.status(500).json({ error: "No image returned", result });
 
     } catch (err) {
         console.error(err);
